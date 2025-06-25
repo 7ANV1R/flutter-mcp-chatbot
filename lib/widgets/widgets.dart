@@ -5,6 +5,7 @@ export 'ui/chat_input_area.dart';
 export 'ui/chat_loading_indicator.dart';
 export 'ui/chat_messages_list.dart';
 export 'ui/suggested_messages.dart';
+export 'ui/shimmer_widget.dart';
 
 export 'chat/animated_message_bubble.dart';
 export 'chat/animated_send_button.dart';

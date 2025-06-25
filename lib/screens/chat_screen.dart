@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/services.dart';
+import '../services/chat_service.dart';
 import '../widgets/widgets.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -25,6 +25,14 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _initializeChat() async {
     setState(() => _isLoading = true);
     try {
+      // Set up message change callback
+      _chatService.onMessagesChanged = () {
+        if (mounted) {
+          setState(() {});
+          _scrollToBottom();
+        }
+      };
+      
       await _chatService.initialize();
       if (mounted) {
         setState(() => _isInitialized = true);

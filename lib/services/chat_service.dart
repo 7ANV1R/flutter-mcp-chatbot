@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/chat_message.dart';
 import '../models/weather_data.dart';
@@ -15,7 +16,9 @@ class ChatService {
   // Conversation context
   String? _lastAskedCity;
   String? _lastWeatherType; // 'current' or 'forecast'
-  DateTime? _lastWeatherRequest;
+
+  // Callback for UI updates
+  VoidCallback? onMessagesChanged;
 
   ChatService() : _mcpClient = McpChatClient();
 
@@ -67,116 +70,136 @@ Try asking me about the weather in any city!""";
     _addMessage(userMsg);
 
     try {
-      // Check if this is a contextual query and enhance it
-      String processedMessage = userMessage;
-      final isContextual = _llmService.isContextualWeatherQuery(
+      print('🔍 DEBUG: Processing user message: "$userMessage"');
+
+      // Fast analysis for weather intent detection
+      final analysis = await _llmService.analyzeWeatherQueryComplete(
         userMessage,
         lastCity: _lastAskedCity,
         lastWeatherType: _lastWeatherType,
-        lastWeatherRequest: _lastWeatherRequest,
+        conversationHistory: _getRecentConversationContext(),
       );
 
-      if (isContextual) {
-        processedMessage = _llmService.enhanceMessageWithContext(
-          userMessage,
-          lastCity: _lastAskedCity,
-          lastWeatherType: _lastWeatherType,
+      print('📋 DEBUG: Complete analysis result: $analysis');
+
+      if (analysis['should_use_tool'] == true && analysis['city'] != null) {
+        print(
+          '🌦️ DEBUG: Weather intent detected - starting streaming response',
+        );
+
+        final city = analysis['city'] as String;
+        final toolName =
+            analysis['tool_name'] as String? ?? 'get-current-weather';
+
+        print('🔧 DEBUG: Using city: "$city", tool: "$toolName"');
+
+        // Create placeholder message immediately for streaming UI
+        final streamingMsg = ChatMessage(
+          id: _generateId(),
+          content: "Analyzing your weather request...",
+          type: MessageType.assistant,
+          state: MessageState.analyzing,
+          isWeatherQuery: true,
+        );
+        _addMessage(streamingMsg);
+
+        // Update to fetching state
+        _updateMessageState(
+          streamingMsg.id,
+          MessageState.fetchingWeather,
+          "Getting weather data for $city...",
+        );
+
+        List<String> toolResults = [];
+        WeatherData? weatherData;
+
+        try {
+          // Call the appropriate MCP tool
+          print('📞 DEBUG: Calling MCP tool...');
+          final result = await _mcpClient.callTool(toolName, {'city': city});
+          print(
+            '✅ DEBUG: Tool call successful, result: ${result.length > 100 ? "${result.substring(0, 100)}..." : result}',
+          );
+          toolResults.add(result);
+
+          // Parse weather data if it's a current weather response and city was found
+          if (toolName == 'get-current-weather' &&
+              !result.contains('not found') &&
+              !result.contains('❌')) {
+            weatherData = WeatherData.fromWeatherResponse(result);
+            print(
+              '🌤️ DEBUG: Parsed weather data: ${weatherData?.cityName ?? "null"}',
+            );
+          } else if (toolName == 'get-current-weather') {
+            print('❌ DEBUG: City not found, skipping weather widget creation');
+          }
+
+          // Update conversation context
+          _lastAskedCity = city;
+          _lastWeatherType = toolName == 'get-weather-forecast'
+              ? 'forecast'
+              : 'current';
+          print(
+            '🧠 DEBUG: Updated context - city: $_lastAskedCity, type: $_lastWeatherType',
+          );
+        } catch (e) {
+          // If tool call fails, we'll still generate a response
+          print('❌ DEBUG: Tool call failed: $e');
+          toolResults.add("Sorry, I couldn't fetch weather data right now: $e");
+        }
+
+        // Update to streaming final response
+        _updateMessageState(
+          streamingMsg.id,
+          MessageState.streaming,
+          "Preparing your weather report...",
+        );
+
+        // Generate LLM response with conversation context
+        print(
+          '🤖 DEBUG: Generating LLM response with ${toolResults.length} tool results',
+        );
+
+        // Use enhanced message from analysis if available, otherwise original
+        final messageToProcess =
+            analysis['enhanced_message'] as String? ?? userMessage;
+
+        final response = await _llmService.generateResponse(
+          messageToProcess,
+          toolResults: toolResults.isNotEmpty ? toolResults : null,
         );
         print(
-          '🧠 DEBUG: Enhanced contextual message: "$userMessage" → "$processedMessage"',
+          '📝 DEBUG: LLM response generated: ${response.length > 100 ? "${response.substring(0, 100)}..." : response}',
         );
-      }
 
-      // Check if the LLM service thinks we should use weather tools
-      List<String> toolResults = [];
-      WeatherData? weatherData; // Move weather data outside try block
-
-      print('🔍 DEBUG: Processing user message: "$processedMessage"');
-
-      if (_llmService.shouldUseWeatherTool(processedMessage)) {
-        print('🛠️ DEBUG: LLM service detected weather tool should be used');
-
-        // Extract parameters for weather tool
-        final params = _llmService.extractWeatherToolParams(processedMessage);
-        print('🔧 DEBUG: Extracted tool params: $params');
-
-        if (params.containsKey('city')) {
-          try {
-            // Determine which tool to use based on the message
-            final toolName = _llmService.getToolName(processedMessage);
-            print('🎯 DEBUG: Selected tool: $toolName');
-
-            // Call the appropriate MCP tool
-            print('📞 DEBUG: Calling MCP tool...');
-            final result = await _mcpClient.callTool(toolName, params);
-            print(
-              '✅ DEBUG: Tool call successful, result: ${result.length > 100 ? "${result.substring(0, 100)}..." : result}',
-            );
-            toolResults.add(result);
-
-            // Parse weather data if it's a current weather response
-            if (toolName == 'get-current-weather') {
-              weatherData = WeatherData.fromWeatherResponse(result);
-              print(
-                '🌤️ DEBUG: Parsed weather data: ${weatherData?.cityName ?? "null"}',
-              );
-            }
-
-            // Update conversation context
-            _lastAskedCity = params['city'] as String?;
-            _lastWeatherType = toolName == 'get-weather-forecast'
-                ? 'forecast'
-                : 'current';
-            _lastWeatherRequest = DateTime.now();
-            print(
-              '🧠 DEBUG: Updated context - city: $_lastAskedCity, type: $_lastWeatherType',
-            );
-          } catch (e) {
-            // If tool call fails, we'll still generate a response
-            print('❌ DEBUG: Tool call failed: $e');
-            toolResults.add(
-              "Sorry, I couldn't fetch weather data right now: $e",
-            );
-          }
-        } else {
-          print('⚠️ DEBUG: No city found in message');
-        }
-      } else {
-        print('💭 DEBUG: LLM service determined no weather tool needed');
-      }
-
-      // Generate LLM response with conversation context
-      print(
-        '🤖 DEBUG: Generating LLM response with ${toolResults.length} tool results',
-      );
-
-      // Build context for LLM
-      String contextualPrompt = processedMessage;
-      if (isContextual && _lastAskedCity != null) {
-        contextualPrompt +=
-            "\n\nContext: User previously asked about weather in $_lastAskedCity. This is a follow-up question.";
-      }
-
-      final response = await _llmService.generateResponse(
-        contextualPrompt,
-        toolResults: toolResults.isNotEmpty ? toolResults : null,
-      );
-      print(
-        '📝 DEBUG: LLM response generated: ${response.length > 100 ? "${response.substring(0, 100)}..." : response}',
-      );
-
-      // Add assistant response with weather data if available
-      final assistantMsg = ChatMessage(
-        id: _generateId(),
-        content: weatherData != null
+        // Update final message with complete content
+        final finalContent = weatherData != null
             ? "Here's the current weather information:"
-            : response,
-        type: MessageType.assistant,
-        weatherData: weatherData,
-      );
-      _addMessage(assistantMsg);
+            : response;
 
-      return assistantMsg;
+        _updateMessageState(
+          streamingMsg.id,
+          MessageState.complete,
+          finalContent,
+          weatherData,
+        );
+
+        return _messages.firstWhere((msg) => msg.id == streamingMsg.id);
+      } else {
+        print('💭 DEBUG: Analysis determined no weather tool needed');
+
+        // For non-weather queries, generate direct response
+        final response = await _llmService.generateResponse(userMessage);
+
+        final assistantMsg = ChatMessage(
+          id: _generateId(),
+          content: response,
+          type: MessageType.assistant,
+        );
+        _addMessage(assistantMsg);
+
+        return assistantMsg;
+      }
     } catch (e) {
       // Add error message
       final errorMsg = ChatMessage(
@@ -191,8 +214,43 @@ Try asking me about the weather in any city!""";
     }
   }
 
+  // Update message state for streaming UI
+  void _updateMessageState(
+    String messageId,
+    MessageState newState,
+    String newContent, [
+    WeatherData? weatherData,
+  ]) {
+    final messageIndex = _messages.indexWhere((msg) => msg.id == messageId);
+    if (messageIndex != -1) {
+      _messages[messageIndex] = _messages[messageIndex].copyWith(
+        state: newState,
+        content: newContent,
+        weatherData: weatherData,
+      );
+      onMessagesChanged?.call();
+    }
+  }
+
+  // Get recent conversation context for LLM enhancement
+  String _getRecentConversationContext() {
+    if (_messages.isEmpty) return '';
+
+    // Get last 3 messages for context
+    final recentMessages = _messages
+        .take(3)
+        .map((msg) {
+          final type = msg.type == MessageType.user ? 'User' : 'Assistant';
+          return '$type: ${msg.content}';
+        })
+        .join('\n');
+
+    return recentMessages;
+  }
+
   void _addMessage(ChatMessage message) {
     _messages.add(message);
+    onMessagesChanged?.call();
   }
 
   void clearMessages() {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/chat_message.dart';
 import '../ui/weather_widget.dart';
+import '../ui/shimmer_widget.dart';
 
 class AnimatedMessageBubble extends StatefulWidget {
   final ChatMessage message;
@@ -61,6 +62,7 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
   Widget build(BuildContext context) {
     final isUser = widget.message.type == MessageType.user;
     final isError = widget.message.isError;
+    final isStreaming = widget.message.state != MessageState.complete;
 
     return SlideTransition(
       position: _slideAnimation,
@@ -82,12 +84,18 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                     gradient: LinearGradient(
                       colors: isError
                           ? [Colors.red.shade400, Colors.red.shade600]
-                          : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+                          : isStreaming
+                              ? [Colors.blue.shade400, Colors.blue.shade600]
+                              : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: (isError ? Colors.red : const Color(0xFF6366F1))
+                        color: (isError 
+                            ? Colors.red 
+                            : isStreaming 
+                                ? Colors.blue 
+                                : const Color(0xFF6366F1))
                             .withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
@@ -97,7 +105,9 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                   child: Icon(
                     isError
                         ? Icons.error_outline_rounded
-                        : Icons.smart_toy_rounded,
+                        : isStreaming
+                            ? Icons.hourglass_empty_rounded
+                            : Icons.smart_toy_rounded,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -148,56 +158,62 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                             ),
                           ],
                         ),
-                        child: InkWell(
-                          onLongPress: () {
-                            // Copy text to clipboard on long press
-                            Clipboard.setData(
-                              ClipboardData(text: widget.message.content),
-                            );
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.copy_rounded,
-                                        color: Colors.white,
-                                        size: 16,
+                        child: isStreaming
+                            ? _buildStreamingContent()
+                            : InkWell(
+                                onLongPress: () {
+                                  // Copy text to clipboard on long press
+                                  Clipboard.setData(
+                                    ClipboardData(text: widget.message.content),
+                                  );
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.copy_rounded,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text('Message copied to clipboard'),
+                                          ],
+                                        ),
+                                        duration: const Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
                                       ),
-                                      SizedBox(width: 8),
-                                      Text('Message copied to clipboard'),
-                                    ],
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  widget.message.content,
+                                  style: TextStyle(
+                                    color: isUser
+                                        ? Colors.white
+                                        : isError
+                                        ? Colors.red.shade800
+                                        : const Color(0xFF1F2937),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.4,
+                                    letterSpacing: 0.2,
                                   ),
                                 ),
-                              );
-                            }
-                          },
-                          child: Text(
-                            widget.message.content,
-                            style: TextStyle(
-                              color: isUser
-                                  ? Colors.white
-                                  : isError
-                                  ? Colors.red.shade800
-                                  : const Color(0xFF1F2937),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w400,
-                              height: 1.4,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
+                              ),
                       ),
 
                     // Weather widget after text message
-                    if (!isUser && widget.message.weatherData != null)
-                      WeatherWidget(weatherData: widget.message.weatherData!),
+                    if (!isUser && (widget.message.weatherData != null || widget.message.isWeatherQuery))
+                      widget.message.weatherData != null
+                          ? WeatherWidget(weatherData: widget.message.weatherData!)
+                          : widget.message.isWeatherQuery && isStreaming
+                              ? _buildWeatherShimmer()
+                              : const SizedBox.shrink(),
 
                     // User message (for user messages only)
                     if (isUser && widget.message.content.isNotEmpty)
@@ -289,6 +305,153 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStreamingContent() {
+    switch (widget.message.state) {
+      case MessageState.analyzing:
+        return _buildShimmerText(
+          widget.message.content,
+          icon: Icons.search_rounded,
+        );
+      case MessageState.fetchingWeather:
+        return _buildShimmerText(
+          widget.message.content,
+          icon: Icons.cloud_download_rounded,
+        );
+      case MessageState.streaming:
+        return _buildShimmerText(
+          widget.message.content,
+          icon: Icons.edit_rounded,
+        );
+      case MessageState.error:
+        return Text(
+          widget.message.content,
+          style: TextStyle(
+            color: Colors.red.shade800,
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            height: 1.4,
+            letterSpacing: 0.2,
+          ),
+        );
+      case MessageState.complete:
+        return Text(
+          widget.message.content,
+          style: const TextStyle(
+            color: Color(0xFF1F2937),
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            height: 1.4,
+            letterSpacing: 0.2,
+          ),
+        );
+    }
+  }
+
+  Widget _buildShimmerText(String text, {required IconData icon}) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: Colors.blue.shade600,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ShimmerWidget(
+            isLoading: true,
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Colors.blue.shade700,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeatherShimmer() {
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header shimmer
+          ShimmerWidget(
+            isLoading: true,
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              height: 20,
+              width: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Temperature shimmer
+          ShimmerWidget(
+            isLoading: true,
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              height: 40,
+              width: 100,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Details shimmer
+          Row(
+            children: [
+              for (int i = 0; i < 3; i++) ...[
+                ShimmerWidget(
+                  isLoading: true,
+                  baseColor: Colors.grey.shade300,
+                  highlightColor: Colors.grey.shade100,
+                  child: Container(
+                    height: 16,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                if (i < 2) const SizedBox(width: 16),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
