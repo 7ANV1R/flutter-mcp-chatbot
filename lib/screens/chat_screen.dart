@@ -29,10 +29,15 @@ class _ChatScreenState extends State<ChatScreen> {
       _chatService.onMessagesChanged = () {
         if (mounted) {
           setState(() {});
-          _scrollToBottom();
+          // Use a slight delay to ensure the UI updates before scrolling
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (mounted) {
+              _scrollToBottom();
+            }
+          });
         }
       };
-      
+
       await _chatService.initialize();
       if (mounted) {
         setState(() => _isInitialized = true);
@@ -63,7 +68,12 @@ class _ChatScreenState extends State<ChatScreen> {
       await _chatService.sendMessage(message);
       if (mounted) {
         setState(() {});
-        _scrollToBottom();
+        // Give more time for the message to be rendered before scrolling
+        Future.delayed(const Duration(milliseconds: 250), () {
+          if (mounted) {
+            _scrollToBottom();
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -81,11 +91,17 @@ class _ChatScreenState extends State<ChatScreen> {
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        // Use a longer delay to ensure the ListView has been fully rebuilt
+        // with the new message and its proper height calculated
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
       }
     });
   }
