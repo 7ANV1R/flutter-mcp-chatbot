@@ -30,6 +30,8 @@ class WeatherData {
   // Parse weather data from the text response
   static WeatherData? fromWeatherResponse(String response) {
     try {
+      print('🔍 DEBUG: Parsing weather response: "${response.length > 300 ? '${response.substring(0, 300)}...' : response}"');
+      
       // Check if it's demo data
       final isDemo = response.contains('Demo Weather') || response.contains('📝 Note: This is demo data');
       
@@ -57,22 +59,54 @@ class WeatherData {
       final feelsMatch = RegExp(r'feels like (\d+(?:\.\d+)?)°C').firstMatch(response);
       final feelsLike = feelsMatch != null ? double.tryParse(feelsMatch.group(1)!) ?? temperature : temperature;
 
-      // Extract condition and description
-      final conditionMatch = RegExp(r'Condition: (.+?) - (.+?)\\n', multiLine: true).firstMatch(response);
+      // Extract condition and description with better regex patterns
       String condition = 'Unknown';
       String description = 'Unknown';
       
-      if (conditionMatch != null) {
-        condition = conditionMatch.group(1)!;
-        description = conditionMatch.group(2)!;
-      } else {
-        // Try alternative pattern
-        final altMatch = RegExp(r'Condition: (.+?)\\n', multiLine: true).firstMatch(response);
-        if (altMatch != null) {
-          condition = altMatch.group(1)!;
-          description = condition;
+      // Try multiple patterns to match different formats
+      final patterns = [
+        RegExp(r'🌤️ Condition: (.+?) - (.+?)(?:\n|$)', multiLine: true),
+        RegExp(r'Condition: (.+?) - (.+?)(?:\n|$)', multiLine: true),
+        RegExp(r'🌤️ Condition: (.+?)(?:\n|$)', multiLine: true),
+        RegExp(r'Condition: (.+?)(?:\n|$)', multiLine: true),
+        // Handle cases where description comes after main condition
+        RegExp(r'Weather: (.+?) - (.+?)(?:\n|$)', multiLine: true),
+        RegExp(r'Weather: (.+?)(?:\n|$)', multiLine: true),
+      ];
+      
+      for (final pattern in patterns) {
+        final match = pattern.firstMatch(response);
+        if (match != null) {
+          condition = match.group(1)!.trim();
+          if (match.groupCount >= 2 && match.group(2) != null) {
+            description = match.group(2)!.trim();
+          } else {
+            description = condition;
+          }
+          break;
         }
       }
+      
+      // If still unknown, try to extract from any line with weather description
+      if (description == 'Unknown') {
+        final fallbackPattern = RegExp(r'(Partly Cloudy|Sunny|Clear Sky|Cloudy|Rain|Snow|Storm|Fog|Mist|Overcast|Fair)', caseSensitive: false);
+        final fallbackMatch = fallbackPattern.firstMatch(response);
+        if (fallbackMatch != null) {
+          description = fallbackMatch.group(1)!;
+          condition = description;
+        } else {
+          // Last resort: use a generic description based on temperature
+          if (temperature > 25) {
+            description = "Warm weather";
+          } else if (temperature < 10) {
+            description = "Cool weather";
+          } else {
+            description = "Pleasant weather";
+          }
+        }
+      }
+      
+      print('🔍 DEBUG: Final parsed - condition: "$condition", description: "$description", temp: $temperature°C');
 
       // Extract humidity
       final humidityMatch = RegExp(r'Humidity: (\d+)%').firstMatch(response);

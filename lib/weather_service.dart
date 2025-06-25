@@ -146,7 +146,7 @@ class WeatherService {
   String _getDemoWeather(String city, {String? error}) {
     return '''Current Weather in $city (Demo):
 🌡️ Temperature: 22°C (feels like 24°C)
-🌤️ Condition: Partly Cloudy
+🌤️ Condition: Partly Cloudy - partly cloudy
 💧 Humidity: 65%
 🌬️ Wind: 3.2 m/s
 🔽 Pressure: 1013 hPa

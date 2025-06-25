@@ -11,6 +11,11 @@ class ChatService {
   late LlmService _llmService;
   final McpChatClient _mcpClient;
   final List<ChatMessage> _messages = [];
+  
+  // Conversation context
+  String? _lastAskedCity;
+  String? _lastWeatherType; // 'current' or 'forecast'
+  DateTime? _lastWeatherRequest;
 
   ChatService() : _mcpClient = McpChatClient();
 
@@ -83,23 +88,41 @@ Try asking me about the weather in any city!""";
     _addMessage(userMsg);
 
     try {
+      // Check if this is a contextual query and enhance it
+      String processedMessage = userMessage;
+      final isContextual = _llmService.isContextualWeatherQuery(
+        userMessage, 
+        lastCity: _lastAskedCity, 
+        lastWeatherType: _lastWeatherType,
+        lastWeatherRequest: _lastWeatherRequest,
+      );
+      
+      if (isContextual) {
+        processedMessage = _llmService.enhanceMessageWithContext(
+          userMessage,
+          lastCity: _lastAskedCity,
+          lastWeatherType: _lastWeatherType,
+        );
+        print('🧠 DEBUG: Enhanced contextual message: "$userMessage" → "$processedMessage"');
+      }
+
       // Check if the LLM service thinks we should use weather tools
       List<String> toolResults = [];
       WeatherData? weatherData; // Move weather data outside try block
 
-      print('🔍 DEBUG: Processing user message: "$userMessage"');
+      print('🔍 DEBUG: Processing user message: "$processedMessage"');
 
-      if (_llmService.shouldUseWeatherTool(userMessage)) {
+      if (_llmService.shouldUseWeatherTool(processedMessage)) {
         print('🛠️ DEBUG: LLM service detected weather tool should be used');
 
         // Extract parameters for weather tool
-        final params = _llmService.extractWeatherToolParams(userMessage);
+        final params = _llmService.extractWeatherToolParams(processedMessage);
         print('🔧 DEBUG: Extracted tool params: $params');
 
         if (params.containsKey('city')) {
           try {
             // Determine which tool to use based on the message
-            final toolName = _llmService.getToolName(userMessage);
+            final toolName = _llmService.getToolName(processedMessage);
             print('🎯 DEBUG: Selected tool: $toolName');
 
             // Call the appropriate MCP tool
@@ -115,6 +138,13 @@ Try asking me about the weather in any city!""";
               weatherData = WeatherData.fromWeatherResponse(result);
               print('🌤️ DEBUG: Parsed weather data: ${weatherData?.cityName ?? "null"}');
             }
+            
+            // Update conversation context
+            _lastAskedCity = params['city'] as String?;
+            _lastWeatherType = toolName == 'get-weather-forecast' ? 'forecast' : 'current';
+            _lastWeatherRequest = DateTime.now();
+            print('🧠 DEBUG: Updated context - city: $_lastAskedCity, type: $_lastWeatherType');
+            
           } catch (e) {
             // If tool call fails, we'll still generate a response
             print('❌ DEBUG: Tool call failed: $e');
@@ -129,12 +159,19 @@ Try asking me about the weather in any city!""";
         print('💭 DEBUG: LLM service determined no weather tool needed');
       }
 
-      // Generate LLM response
+      // Generate LLM response with conversation context
       print(
         '🤖 DEBUG: Generating LLM response with ${toolResults.length} tool results',
       );
+      
+      // Build context for LLM
+      String contextualPrompt = processedMessage;
+      if (isContextual && _lastAskedCity != null) {
+        contextualPrompt += "\n\nContext: User previously asked about weather in $_lastAskedCity. This is a follow-up question.";
+      }
+      
       final response = await _llmService.generateResponse(
-        userMessage,
+        contextualPrompt,
         toolResults: toolResults.isNotEmpty ? toolResults : null,
       );
       print(
