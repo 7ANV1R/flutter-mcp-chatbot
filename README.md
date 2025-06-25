@@ -2,6 +2,10 @@
 
 A Flutter mobile app that demonstrates the Model Context Protocol (MCP) by creating a weather chatbot that uses real AI and external APIs.
 
+## ✨ Vibe-Coded Project
+
+This project was created with **vibe coding** — a relaxed, flow-driven approach where creativity and intuition lead the way. No overthinking, just good energy and clean code.
+
 ## Architecture
 
 This app implements proper MCP architecture with:
@@ -133,6 +137,17 @@ This implementation demonstrates:
 - **Google Gemini**: Free AI inference API
 - **OpenWeatherMap**: Free weather data API
 - **HTTP**: For API communications
+
+## Documentation
+
+📚 **Comprehensive documentation available in the `docs/` folder:**
+
+- **[Getting Started Guide](docs/getting-started.md)** - Setup and installation
+- **[Architecture Guide](docs/architecture.md)** - How everything works together
+- **[Code Structure Guide](docs/code-structure.md)** - Detailed code walkthrough
+- **[API Integration Guide](docs/api-integration.md)** - Working with external APIs
+- **[MCP Guide](docs/mcp-guide.md)** - Understanding Model Context Protocol
+- **[Project Overview](docs/overview.md)** - High-level project explanation
 
 ## Troubleshooting
 
