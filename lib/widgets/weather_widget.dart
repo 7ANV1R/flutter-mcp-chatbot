@@ -10,37 +10,39 @@ class WeatherWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            weatherData.temperatureColor.withValues(alpha: 0.8),
-            weatherData.temperatureColor.withValues(alpha: 0.6),
+            weatherData.temperatureColor.withValues(alpha: 0.9),
+            weatherData.temperatureColor.withValues(alpha: 0.7),
+            weatherData.temperatureColor.withValues(alpha: 0.5),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: weatherData.temperatureColor.withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: weatherData.temperatureColor.withValues(alpha: 0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 2,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(28),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1,
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1.5,
               ),
             ),
             child: Column(
@@ -57,38 +59,56 @@ class WeatherWidget extends StatelessWidget {
                           Text(
                             weatherData.cityName,
                             style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                          if (weatherData.country.isNotEmpty)
+                          if (weatherData.country.isNotEmpty) ...[
+                            const SizedBox(height: 2),
                             Text(
                               weatherData.country,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.white.withValues(alpha: 0.8),
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white.withValues(alpha: 0.85),
+                                letterSpacing: 0.3,
                               ),
                             ),
+                          ],
                         ],
                       ),
                     ),
                     if (weatherData.isDemo)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                          horizontal: 12,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.orange.withValues(alpha: 0.9),
+                              Colors.deepOrange.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: const Text(
                           'DEMO',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -101,13 +121,24 @@ class WeatherWidget extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Weather icon
-                    Text(
-                      weatherData.weatherIcon,
-                      style: const TextStyle(fontSize: 80),
+                    // Weather icon with enhanced styling
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        weatherData.weatherIcon,
+                        style: const TextStyle(fontSize: 68),
+                      ),
                     ),
 
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 24),
 
                     // Temperature and condition
                     Expanded(
@@ -117,17 +148,21 @@ class WeatherWidget extends StatelessWidget {
                           Text(
                             '${weatherData.temperature.round()}°',
                             style: const TextStyle(
-                              fontSize: 72,
-                              fontWeight: FontWeight.w300,
+                              fontSize: 64,
+                              fontWeight: FontWeight.w200,
                               color: Colors.white,
-                              height: 0.8,
+                              height: 0.9,
+                              letterSpacing: -2,
                             ),
                           ),
+                          const SizedBox(height: 4),
                           Text(
                             'Feels like ${weatherData.feelsLike.round()}°',
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white.withValues(alpha: 0.85),
+                              letterSpacing: 0.2,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -137,6 +172,7 @@ class WeatherWidget extends StatelessWidget {
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ],
@@ -149,10 +185,14 @@ class WeatherWidget extends StatelessWidget {
 
                 // Weather details grid
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -162,10 +202,20 @@ class WeatherWidget extends StatelessWidget {
                         label: 'Humidity',
                         value: '${weatherData.humidity}%',
                       ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
                       _buildWeatherDetail(
                         icon: '💨',
                         label: 'Wind',
                         value: '${weatherData.windSpeed} m/s',
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.white.withValues(alpha: 0.2),
                       ),
                       _buildWeatherDetail(
                         icon: '🔽',
@@ -177,28 +227,38 @@ class WeatherWidget extends StatelessWidget {
                 ),
 
                 // Powered by MCP badge
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 16,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withValues(alpha: 0.3),
+                          Colors.black.withValues(alpha: 0.2),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.api, size: 16, color: Colors.white),
-                        SizedBox(width: 6),
+                        Icon(Icons.api_rounded, size: 16, color: Colors.white),
+                        SizedBox(width: 8),
                         Text(
                           'Powered by MCP',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.white,
                             fontWeight: FontWeight.w500,
+                            letterSpacing: 0.3,
                           ),
                         ),
                       ],
@@ -218,23 +278,39 @@ class WeatherWidget extends StatelessWidget {
     required String label,
     required String value,
   }) {
-    return Column(
-      children: [
-        Text(icon, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(icon, style: const TextStyle(fontSize: 24)),
           ),
-        ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.7)),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: Colors.white.withValues(alpha: 0.75),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

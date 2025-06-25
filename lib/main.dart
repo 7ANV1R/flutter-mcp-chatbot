@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'chat_service.dart';
-import 'models/chat_message.dart';
-import 'widgets/weather_widget.dart';
+import 'widgets/chat_app_bar.dart';
+import 'widgets/chat_input_area.dart';
+import 'widgets/chat_loading_indicator.dart';
+import 'widgets/chat_messages_list.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,36 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MCP Weather Chat',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6366F1),
+          brightness: Brightness.light,
+        ),
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+        ),
+        cardTheme: const CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
+        ),
+      ),
       home: const ChatScreen(),
       debugShowCheckedModeBanner: false,
     );
@@ -113,174 +143,34 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('MCP Weather Chat'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          if (!_isInitialized && _isLoading)
-            const Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('Initializing MCP Weather Server...'),
-                  ],
-                ),
+      backgroundColor: Colors.grey.shade50,
+      appBar: const ChatAppBar(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.grey.shade50],
+          ),
+        ),
+        child: Column(
+          children: [
+            if (!_isInitialized && _isLoading)
+              const ChatLoadingIndicator()
+            else
+              ChatMessagesList(
+                scrollController: _scrollController,
+                messages: _chatService.messages,
+                isLoading: _isLoading,
               ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _chatService.messages.length,
-                itemBuilder: (context, index) {
-                  final message = _chatService.messages[index];
-                  return _buildMessageBubble(message);
-                },
+            if (_isInitialized)
+              ChatInputArea(
+                messageController: _messageController,
+                onSendMessage: _sendMessage,
+                isLoading: _isLoading,
               ),
-            ),
-          if (_isInitialized) _buildInputArea(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageBubble(ChatMessage message) {
-    final isUser = message.type == MessageType.user;
-    final isError = message.isError;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment: isUser
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isUser) ...[
-            CircleAvatar(
-              backgroundColor: isError ? Colors.red : Colors.blue,
-              child: Icon(
-                isError ? Icons.error : Icons.smart_toy,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
           ],
-          Flexible(
-            child: Column(
-              crossAxisAlignment: isUser 
-                  ? CrossAxisAlignment.end 
-                  : CrossAxisAlignment.start,
-              children: [
-                // Weather widget if weather data is available
-                if (!isUser && message.weatherData != null)
-                  WeatherWidget(weatherData: message.weatherData!),
-                
-                // Regular text message
-                if (message.content.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: EdgeInsets.only(
-                      top: (!isUser && message.weatherData != null) ? 8 : 0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isUser
-                          ? Theme.of(context).primaryColor
-                          : isError
-                          ? Colors.red.shade100
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: InkWell(
-                      onLongPress: () {
-                        // Copy text to clipboard on long press
-                        Clipboard.setData(ClipboardData(text: message.content));
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('💾 Message copied to clipboard'),
-                              duration: Duration(seconds: 2),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                      child: Text(
-                        message.content,
-                        style: TextStyle(
-                          color: isUser ? Colors.white : Colors.black87,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (isUser) ...[
-            const SizedBox(width: 8),
-            CircleAvatar(
-              backgroundColor: Theme.of(context).primaryColor,
-              child: const Icon(Icons.person, color: Colors.white, size: 20),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputArea() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [
-          BoxShadow(
-            offset: const Offset(0, -2),
-            blurRadius: 4,
-            color: Colors.black12,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                hintText: 'Ask about weather in any city...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              onSubmitted: (_) => _sendMessage(),
-              enabled: !_isLoading,
-            ),
-          ),
-          const SizedBox(width: 8),
-          FloatingActionButton(
-            onPressed: _isLoading ? null : _sendMessage,
-            child: _isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.send),
-          ),
-        ],
+        ),
       ),
     );
   }
