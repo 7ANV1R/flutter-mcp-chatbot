@@ -2,8 +2,8 @@
 
 import 'dart:math';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'models/chat_message.dart';
-import 'models/weather_data.dart';
+import '../models/chat_message.dart';
+import '../models/weather_data.dart';
 import 'llm_service.dart';
 import 'mcp_client.dart';
 
@@ -11,7 +11,7 @@ class ChatService {
   late LlmService _llmService;
   final McpChatClient _mcpClient;
   final List<ChatMessage> _messages = [];
-  
+
   // Conversation context
   String? _lastAskedCity;
   String? _lastWeatherType; // 'current' or 'forecast'
@@ -91,19 +91,21 @@ Try asking me about the weather in any city!""";
       // Check if this is a contextual query and enhance it
       String processedMessage = userMessage;
       final isContextual = _llmService.isContextualWeatherQuery(
-        userMessage, 
-        lastCity: _lastAskedCity, 
+        userMessage,
+        lastCity: _lastAskedCity,
         lastWeatherType: _lastWeatherType,
         lastWeatherRequest: _lastWeatherRequest,
       );
-      
+
       if (isContextual) {
         processedMessage = _llmService.enhanceMessageWithContext(
           userMessage,
           lastCity: _lastAskedCity,
           lastWeatherType: _lastWeatherType,
         );
-        print('🧠 DEBUG: Enhanced contextual message: "$userMessage" → "$processedMessage"');
+        print(
+          '🧠 DEBUG: Enhanced contextual message: "$userMessage" → "$processedMessage"',
+        );
       }
 
       // Check if the LLM service thinks we should use weather tools
@@ -132,19 +134,24 @@ Try asking me about the weather in any city!""";
               '✅ DEBUG: Tool call successful, result: ${result.length > 100 ? "${result.substring(0, 100)}..." : result}',
             );
             toolResults.add(result);
-            
+
             // Parse weather data if it's a current weather response
             if (toolName == 'get-current-weather') {
               weatherData = WeatherData.fromWeatherResponse(result);
-              print('🌤️ DEBUG: Parsed weather data: ${weatherData?.cityName ?? "null"}');
+              print(
+                '🌤️ DEBUG: Parsed weather data: ${weatherData?.cityName ?? "null"}',
+              );
             }
-            
+
             // Update conversation context
             _lastAskedCity = params['city'] as String?;
-            _lastWeatherType = toolName == 'get-weather-forecast' ? 'forecast' : 'current';
+            _lastWeatherType = toolName == 'get-weather-forecast'
+                ? 'forecast'
+                : 'current';
             _lastWeatherRequest = DateTime.now();
-            print('🧠 DEBUG: Updated context - city: $_lastAskedCity, type: $_lastWeatherType');
-            
+            print(
+              '🧠 DEBUG: Updated context - city: $_lastAskedCity, type: $_lastWeatherType',
+            );
           } catch (e) {
             // If tool call fails, we'll still generate a response
             print('❌ DEBUG: Tool call failed: $e');
@@ -163,13 +170,14 @@ Try asking me about the weather in any city!""";
       print(
         '🤖 DEBUG: Generating LLM response with ${toolResults.length} tool results',
       );
-      
+
       // Build context for LLM
       String contextualPrompt = processedMessage;
       if (isContextual && _lastAskedCity != null) {
-        contextualPrompt += "\n\nContext: User previously asked about weather in $_lastAskedCity. This is a follow-up question.";
+        contextualPrompt +=
+            "\n\nContext: User previously asked about weather in $_lastAskedCity. This is a follow-up question.";
       }
-      
+
       final response = await _llmService.generateResponse(
         contextualPrompt,
         toolResults: toolResults.isNotEmpty ? toolResults : null,
@@ -181,8 +189,8 @@ Try asking me about the weather in any city!""";
       // Add assistant response with weather data if available
       final assistantMsg = ChatMessage(
         id: _generateId(),
-        content: weatherData != null 
-            ? "Here's the current weather information:" 
+        content: weatherData != null
+            ? "Here's the current weather information:"
             : response,
         type: MessageType.assistant,
         weatherData: weatherData,

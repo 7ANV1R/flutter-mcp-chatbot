@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'animated_send_button.dart';
+import '../chat/animated_send_button.dart';
 
 class ChatInputArea extends StatelessWidget {
   final TextEditingController messageController;

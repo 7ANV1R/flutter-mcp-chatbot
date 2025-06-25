@@ -1,33 +1,136 @@
 # Code Structure Guide
 
-This guide walks through the codebase to help you understand how everything is organized and implemented.
+This guide walks through the clean, organized codebase to help you understand how everything is implemented.
 
 ## Project Structure
 
 ```
 flutter_mcp_chat/
 ├── lib/                          # Main application code
-│   ├── main.dart                 # App entry point
-│   ├── chat_service.dart         # Central coordinator
-│   ├── llm_service.dart          # AI integration
-│   ├── mcp_client.dart           # MCP protocol handler
-│   ├── weather_service.dart      # Weather API client
-│   ├── models/                   # Data models
-│   │   ├── chat_message.dart     # Chat message structure
-│   │   └── weather_data.dart     # Weather data structure
-│   └── widgets/                  # UI components
-│       └── weather_widget.dart   # Weather display widget
-├── docs/                         # Documentation (this folder!)
-├── .env                          # API keys (not in git)
-├── .gitignore                    # Git ignore rules
-└── pubspec.yaml                  # Flutter dependencies
+│   ├── main.dart                 # 🎯 Clean entry point (15 lines)
+│   ├── app.dart                  # 📱 App configuration
+│   ├── config/                   # ⚙️ Configuration
+│   │   ├── app_constants.dart    # 🔧 Constants & styling
+│   │   └── app_theme.dart        # 🎨 Material Design theme
+│   ├── models/                   # 📊 Data models
+│   │   ├── chat_message.dart     # 💬 Chat message structure
+│   │   ├── weather_data.dart     # 🌡️ Weather data structure
+│   │   └── models.dart           # 📦 Barrel exports
+│   ├── screens/                  # 📱 Screen widgets
+│   │   └── chat_screen.dart      # 💬 Main chat interface
+│   ├── services/                 # 🔧 Business logic
+│   │   ├── chat_service.dart     # 🤖 Chat coordination
+│   │   ├── llm_service.dart      # 🧠 AI integration
+│   │   ├── mcp_client.dart       # 📡 MCP protocol
+│   │   ├── weather_service.dart  # 🌦️ Weather API
+│   │   └── services.dart         # 📦 Barrel exports
+│   └── widgets/                  # 🧩 UI components
+│       ├── chat/                 # 💬 Chat-specific widgets
+│       │   ├── animated_message_bubble.dart
+│       │   ├── animated_send_button.dart
+│       │   └── typing_indicator.dart
+│       ├── ui/                   # 🎨 General UI widgets
+│       │   ├── chat_app_bar.dart
+│       │   ├── chat_input_area.dart
+│       │   ├── chat_loading_indicator.dart
+│       │   ├── chat_messages_list.dart
+│       │   └── weather_widget.dart
+│       └── widgets.dart          # 📦 Barrel exports
+├── bin/                          # Standalone executables
+│   └── weather_server.dart       # 🌤️ MCP weather server
+├── docs/                         # 📚 Documentation
+├── .env                          # 🔑 API keys (not in git)
+└── pubspec.yaml                  # 📋 Flutter dependencies
+```
+
+## Architecture Benefits
+
+### 🎯 **Clean Architecture Layers**
+This project follows clean architecture principles with clear separation:
+
+- **Presentation Layer** (`screens/`, `widgets/`): UI components and user interaction
+- **Business Logic Layer** (`services/`): Application logic and coordination  
+- **Data Layer** (`models/`): Data structures and contracts
+- **Configuration Layer** (`config/`): App-wide settings and constants
+
+### 📦 **Barrel Exports**
+Clean imports using barrel files:
+```dart
+// Instead of multiple imports:
+import '../widgets/ui/chat_app_bar.dart';
+import '../widgets/ui/chat_input_area.dart';
+
+// Use single barrel import:
+import '../widgets/widgets.dart';
+```
+
+### 🔧 **Centralized Configuration**
+All styling values in one place:
+```dart
+// AppConstants.dart
+static const Color primaryBlue = Color(0xFF6366F1);
+static const double borderRadius = 24.0;
+static const String inputHint = 'Ask about weather...';
+```
+
+### 🧩 **Component Hierarchy**
+```
+ChatScreen
+├── ChatAppBar
+├── ChatMessagesList
+│   ├── AnimatedMessageBubble
+│   │   └── WeatherWidget (conditional)
+│   └── TypingIndicator (conditional)
+└── ChatInputArea
+    ├── TextField
+    └── AnimatedSendButton
 ```
 
 ## Core Files Explained
 
-### `main.dart` - The App Entry Point
+### `main.dart` - Ultra-Clean Entry Point (15 lines!)
 
 ```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print('Warning: Could not load .env file: $e');
+  }
+
+  runApp(const MyApp());
+}
+```
+
+**What it does**: 
+- Initializes Flutter
+- Loads environment variables
+- Launches the app
+- **That's it!** Everything else is properly abstracted
+
+### `app.dart` - App Configuration
+
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: AppConstants.appTitle,
+      theme: AppTheme.lightTheme,
+      home: const ChatScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+```
+
+**What it does**:
+- Configures MaterialApp
+- Applies centralized theme
+- Sets up navigation
+- Uses constants for configuration
 // Key responsibilities:
 // 1. Initialize the Flutter app
 // 2. Set up the main chat interface

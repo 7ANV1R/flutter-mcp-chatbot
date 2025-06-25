@@ -8,12 +8,23 @@ This project was created with **vibe coding** — a relaxed, flow-driven approac
 
 ## Architecture
 
-This app implements proper MCP architecture with:
+This app implements proper MCP architecture with clean, scalable code organization:
 
-- **MCP Server** (`bin/weather_server.dart`): Standalone server that provides weather tools via MCP protocol
-- **MCP Client** (`lib/mcp_client.dart`): Flutter client that communicates with the server via stdio transport
-- **LLM Integration** (`lib/llm_service.dart`): Uses Google Gemini AI for natural language processing
-- **Weather API**: Integrates with OpenWeatherMap API for real weather data
+- **🎯 Clean Entry Point** (`main.dart`): Minimal 15-line entry point
+- **📱 App Configuration** (`app.dart`): Centralized app setup and theming
+- **🌤️ MCP Server** (`bin/weather_server.dart`): Standalone server providing weather tools
+- **📡 MCP Client** (`services/mcp_client.dart`): Flutter client with stdio transport
+- **🧠 LLM Integration** (`services/llm_service.dart`): Google Gemini AI processing
+- **🌦️ Weather API** (`services/weather_service.dart`): OpenWeatherMap integration
+- **🎨 Modern UI** (`widgets/`): Modular, reusable components with animations
+
+### Key Design Principles
+
+- **🏗️ Clean Architecture**: Separation of UI, business logic, and data
+- **📦 Modular Design**: Barrel exports for clean imports
+- **🎨 Design System**: Centralized constants and theming
+- **♻️ Reusable Components**: Widget-based architecture
+- **🚀 Scalability**: Easy to extend and maintain
 
 ## Features
 
@@ -21,7 +32,11 @@ This app implements proper MCP architecture with:
 - 🌡️ **Live Weather Data**: Fetches real weather from OpenWeatherMap API
 - 📡 **True MCP Implementation**: Proper client-server communication using MCP protocol
 - 🔧 **Tool Calling**: AI automatically determines when and how to use weather tools
-- 📱 **Mobile UI**: Beautiful Flutter chat interface
+- 📱 **Modern Mobile UI**: Beautiful Flutter interface with smooth animations
+- 🎨 **Clean Architecture**: Modular, scalable, and maintainable codebase
+- ♻️ **Reusable Components**: Widget-based design system
+- 🌈 **Material Design 3**: Modern UI following Google's latest design principles
+- 🔧 **Easy Configuration**: Centralized constants and theming
 
 ## Setup
 
@@ -107,17 +122,47 @@ The app works in demo mode even without API keys:
 
 ```
 lib/
-├── main.dart                 # Flutter app entry point
-├── chat_service.dart         # Coordinates LLM, MCP, and UI
-├── llm_service.dart          # Groq AI integration
-├── mcp_client.dart           # MCP client (stdio transport)
-└── models/
-    └── chat_message.dart     # Chat message model
+├── main.dart                    # 🎯 Clean entry point (15 lines!)
+├── app.dart                     # 📱 App configuration
+├── config/                      # ⚙️ Configuration & constants
+│   ├── app_constants.dart       # 🔧 Colors, dimensions, strings
+│   └── app_theme.dart          # 🎨 Material Design theme
+├── models/                      # 📊 Data models
+│   ├── chat_message.dart        # 💬 Chat message structure
+│   ├── weather_data.dart        # 🌡️ Weather data model
+│   └── models.dart             # 📦 Barrel exports
+├── screens/                     # 📱 Screen widgets
+│   └── chat_screen.dart        # 💬 Main chat interface
+├── services/                    # 🔧 Business logic & APIs
+│   ├── chat_service.dart        # 🤖 Chat coordination
+│   ├── llm_service.dart         # 🧠 AI integration
+│   ├── mcp_client.dart          # 📡 MCP client
+│   ├── mcp_weather_server.dart  # 🌤️ MCP server
+│   ├── weather_service.dart     # 🌦️ Weather API
+│   └── services.dart           # 📦 Barrel exports
+└── widgets/                     # 🧩 Reusable UI components
+    ├── chat/                   # 💬 Chat-specific widgets
+    │   ├── animated_message_bubble.dart
+    │   ├── animated_send_button.dart
+    │   └── typing_indicator.dart
+    ├── ui/                     # 🎨 General UI widgets
+    │   ├── chat_app_bar.dart
+    │   ├── chat_input_area.dart
+    │   ├── chat_loading_indicator.dart
+    │   ├── chat_messages_list.dart
+    │   └── weather_widget.dart
+    └── widgets.dart            # 📦 Barrel exports
 
 bin/
-└── weather_server.dart       # MCP weather server
+└── weather_server.dart          # 🌤️ Standalone MCP server
 
-.env                          # API keys configuration
+docs/                           # 📚 Comprehensive documentation
+├── getting-started.md
+├── architecture.md
+├── code-structure.md
+├── api-integration.md
+├── mcp-guide.md
+└── overview.md
 ```
 
 ## MCP Protocol Details
@@ -144,7 +189,7 @@ This implementation demonstrates:
 
 - **[Getting Started Guide](docs/getting-started.md)** - Setup and installation
 - **[Architecture Guide](docs/architecture.md)** - How everything works together
-- **[Code Structure Guide](docs/code-structure.md)** - Detailed code walkthrough
+- **[Code Structure Guide](docs/code-structure.md)** - Clean architecture and code organization
 - **[API Integration Guide](docs/api-integration.md)** - Working with external APIs
 - **[MCP Guide](docs/mcp-guide.md)** - Understanding Model Context Protocol
 - **[Project Overview](docs/overview.md)** - High-level project explanation

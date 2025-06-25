@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/chat_message.dart';
-import 'animated_message_bubble.dart';
-import 'typing_indicator.dart';
+import '../../models/chat_message.dart';
+import '../chat/animated_message_bubble.dart';
+import '../chat/typing_indicator.dart';
 
 class ChatMessagesList extends StatelessWidget {
   final ScrollController scrollController;

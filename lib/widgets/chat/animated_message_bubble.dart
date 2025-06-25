@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/chat_message.dart';
-import 'weather_widget.dart';
+import '../../models/chat_message.dart';
+import '../ui/weather_widget.dart';
 
 class AnimatedMessageBubble extends StatefulWidget {
   final ChatMessage message;

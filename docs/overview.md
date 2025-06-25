@@ -36,11 +36,13 @@ The weather information is real-time data from OpenWeatherMap, not fake demo dat
 
 ## Key Technologies Used
 
-- **Flutter**: For the mobile app interface
-- **Dart**: Programming language
+- **Flutter**: For the mobile app interface with Material Design 3
+- **Dart**: Programming language with clean architecture principles
 - **Google Gemini AI**: For natural language understanding
 - **OpenWeatherMap API**: For weather data
 - **Model Context Protocol**: For AI-tool communication
+- **Clean Architecture**: Modular, scalable code organization
+- **Material Design 3**: Modern UI components and animations
 
 ## Who This Is For
 
@@ -58,6 +60,11 @@ By exploring this project, you'll understand:
 - How AI can intelligently use tools
 - Modern patterns for AI-powered applications
 - How to handle API keys securely
+- **Clean architecture principles for Flutter**
+- **Modular widget design patterns**
+- **Material Design 3 implementation**
+- **Scalable code organization**
+- **Professional Flutter development practices**
 
 ## Project Achievement
 
