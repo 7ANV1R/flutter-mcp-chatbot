@@ -131,7 +131,7 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                               : isError
                               ? Colors.red.shade50
                               : Colors.white,
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(16),
                           border: isUser
                               ? null
                               : Border.all(
@@ -207,7 +207,7 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                           gradient: const LinearGradient(
                             colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                           ),
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.05),

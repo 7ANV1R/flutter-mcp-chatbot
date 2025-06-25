@@ -21,28 +21,28 @@ class WeatherWidget extends StatelessWidget {
             weatherData.temperatureColor.withValues(alpha: 0.5),
           ],
         ),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: weatherData.temperatureColor.withValues(alpha: 0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-            spreadRadius: 2,
+            color: weatherData.temperatureColor.withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+            spreadRadius: 1,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(16),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(28),
+              color: Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.5,
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1,
               ),
             ),
             child: Column(
@@ -59,21 +59,21 @@ class WeatherWidget extends StatelessWidget {
                           Text(
                             weatherData.cityName,
                             style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.3,
                             ),
                           ),
                           if (weatherData.country.isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             Text(
                               weatherData.country,
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white.withValues(alpha: 0.85),
-                                letterSpacing: 0.3,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ],
@@ -87,25 +87,13 @@ class WeatherWidget extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.orange.withValues(alpha: 0.9),
-                              Colors.deepOrange.withValues(alpha: 0.8),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.orange.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: Colors.orange.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
                           'DEMO',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             letterSpacing: 0.5,
@@ -121,24 +109,10 @@ class WeatherWidget extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Weather icon with enhanced styling
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        weatherData.weatherIcon,
-                        style: const TextStyle(fontSize: 68),
-                      ),
-                    ),
+                    // Clean weather icon
+                    _buildWeatherIcon(),
 
-                    const SizedBox(width: 24),
+                    const SizedBox(width: 20),
 
                     // Temperature and condition
                     Expanded(
@@ -148,31 +122,30 @@ class WeatherWidget extends StatelessWidget {
                           Text(
                             '${weatherData.temperature.round()}°',
                             style: const TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.w200,
+                              fontSize: 56,
+                              fontWeight: FontWeight.w300,
                               color: Colors.white,
-                              height: 0.9,
-                              letterSpacing: -2,
+                              height: 1.0,
+                              letterSpacing: -1,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Feels like ${weatherData.feelsLike.round()}°',
                             style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white.withValues(alpha: 0.85),
-                              letterSpacing: 0.2,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             weatherData.description,
                             style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                               color: Colors.white,
-                              letterSpacing: 0.3,
+                              letterSpacing: 0.2,
                             ),
                           ),
                         ],
@@ -181,16 +154,16 @@ class WeatherWidget extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 // Weather details grid
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withValues(alpha: 0.15),
                       width: 1,
                     ),
                   ),
@@ -204,7 +177,7 @@ class WeatherWidget extends StatelessWidget {
                       ),
                       Container(
                         width: 1,
-                        height: 40,
+                        height: 32,
                         color: Colors.white.withValues(alpha: 0.2),
                       ),
                       _buildWeatherDetail(
@@ -214,7 +187,7 @@ class WeatherWidget extends StatelessWidget {
                       ),
                       Container(
                         width: 1,
-                        height: 40,
+                        height: 32,
                         color: Colors.white.withValues(alpha: 0.2),
                       ),
                       _buildWeatherDetail(
@@ -225,51 +198,61 @@ class WeatherWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Powered by MCP badge
-                const SizedBox(height: 20),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.black.withValues(alpha: 0.3),
-                          Colors.black.withValues(alpha: 0.2),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.api_rounded, size: 16, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text(
-                          'Powered by MCP',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildWeatherIcon() {
+    // Get weather condition from the description
+    final condition = weatherData.description.toLowerCase();
+
+    // Select appropriate icon based on weather condition
+    IconData iconData;
+    Color iconColor;
+
+    if (condition.contains('rain') || condition.contains('drizzle')) {
+      iconData = Icons.water_drop;
+      iconColor = Colors.lightBlue;
+    } else if (condition.contains('snow')) {
+      iconData = Icons.ac_unit;
+      iconColor = Colors.white;
+    } else if (condition.contains('thunder') || condition.contains('storm')) {
+      iconData = Icons.flash_on;
+      iconColor = Colors.yellow;
+    } else if (condition.contains('cloud')) {
+      iconData = Icons.cloud;
+      iconColor = Colors.white;
+    } else if (condition.contains('clear') || condition.contains('sun')) {
+      iconData = Icons.wb_sunny;
+      iconColor = Colors.orange;
+    } else if (condition.contains('mist') ||
+        condition.contains('fog') ||
+        condition.contains('haze')) {
+      iconData = Icons.blur_on;
+      iconColor = Colors.grey.shade300;
+    } else if (condition.contains('wind')) {
+      iconData = Icons.air;
+      iconColor = Colors.white;
+    } else {
+      iconData = Icons.wb_cloudy;
+      iconColor = Colors.white;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Icon(iconData, size: 48, color: iconColor),
     );
   }
 
