@@ -17,19 +17,17 @@ class ChatMessagesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: ListView.builder(
-        controller: scrollController,
-        padding: const EdgeInsets.all(20),
-        itemCount: messages.length + (isLoading ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == messages.length && isLoading) {
-            return const TypingIndicator();
-          }
-          final message = messages[index];
-          return AnimatedMessageBubble(message: message, index: index);
-        },
-      ),
+    return ListView.builder(
+      controller: scrollController,
+      padding: const EdgeInsets.all(20),
+      itemCount: messages.length + (isLoading ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == messages.length && isLoading) {
+          return const TypingIndicator();
+        }
+        final message = messages[index];
+        return AnimatedMessageBubble(message: message, index: index);
+      },
     );
   }
 }

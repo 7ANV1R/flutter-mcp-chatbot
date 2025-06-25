@@ -110,18 +110,12 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
                   children: [
-                    // Weather widget if weather data is available
-                    if (!isUser && widget.message.weatherData != null)
-                      WeatherWidget(weatherData: widget.message.weatherData!),
-
-                    // Regular text message
-                    if (widget.message.content.isNotEmpty)
+                    // Regular text message first
+                    if (!isUser && widget.message.content.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
                         margin: EdgeInsets.only(
-                          top: (!isUser && widget.message.weatherData != null)
-                              ? 12
-                              : 0,
+                          bottom: widget.message.weatherData != null ? 12 : 0,
                         ),
                         decoration: BoxDecoration(
                           gradient: isUser
@@ -192,6 +186,70 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                                   : isError
                                   ? Colors.red.shade800
                                   : const Color(0xFF1F2937),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              height: 1.4,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // Weather widget after text message
+                    if (!isUser && widget.message.weatherData != null)
+                      WeatherWidget(weatherData: widget.message.weatherData!),
+
+                    // User message (for user messages only)
+                    if (isUser && widget.message.content.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: InkWell(
+                          onLongPress: () {
+                            // Copy text to clipboard on long press
+                            Clipboard.setData(
+                              ClipboardData(text: widget.message.content),
+                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.copy_rounded,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('Message copied to clipboard'),
+                                    ],
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            widget.message.content,
+                            style: const TextStyle(
+                              color: Colors.white,
                               fontSize: 15,
                               fontWeight: FontWeight.w400,
                               height: 1.4,

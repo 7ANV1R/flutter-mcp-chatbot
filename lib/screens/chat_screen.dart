@@ -42,11 +42,13 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _sendMessage() async {
-    final message = _messageController.text.trim();
+  Future<void> _sendMessage([String? predefinedMessage]) async {
+    final message = predefinedMessage ?? _messageController.text.trim();
     if (message.isEmpty) return;
 
-    _messageController.clear();
+    if (predefinedMessage == null) {
+      _messageController.clear();
+    }
     setState(() => _isLoading = true);
 
     try {
@@ -98,10 +100,26 @@ class _ChatScreenState extends State<ChatScreen> {
             if (!_isInitialized && _isLoading)
               const ChatLoadingIndicator()
             else
-              ChatMessagesList(
-                scrollController: _scrollController,
-                messages: _chatService.messages,
-                isLoading: _isLoading,
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ChatMessagesList(
+                        scrollController: _scrollController,
+                        messages: _chatService.messages,
+                        isLoading: _isLoading,
+                      ),
+                    ),
+                    // Show suggested messages only when there's just the welcome message
+                    if (_isInitialized &&
+                        _chatService.messages.length == 1 &&
+                        !_isLoading)
+                      SuggestedMessages(
+                        onSuggestionTap: (suggestion) =>
+                            _sendMessage(suggestion),
+                      ),
+                  ],
+                ),
               ),
             if (_isInitialized)
               ChatInputArea(

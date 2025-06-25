@@ -39,33 +39,12 @@ class ChatService {
     // Add welcome message
     final hasApiKey = geminiApiKey != null && geminiApiKey.isNotEmpty;
     final welcomeMessage = hasApiKey
-        ? """Hello! I'm your AI weather assistant powered by MCP (Model Context Protocol) and Google Gemini AI.
+        ? """Hello! I'm your AI weather assistant.
 
-I can help you get:
-🌤️ Current weather conditions
-📅 5-day weather forecasts
-🌡️ Temperature, humidity, wind speed and more
+I can help you get current weather conditions and forecasts for any city around the world. Just ask me about the weather! 🌤️"""
+        : """Hello! I'm your weather assistant powered by MCP.
 
-Just ask me about the weather in any city! For example:
-• "What's the weather in London?"
-• "Show me the forecast for New York"
-• "How's the weather today in Tokyo?"
-
-🚀 Running in mobile-compatible mode with real AI and weather APIs!"""
-        : """Hello! I'm your weather assistant powered by MCP (Model Context Protocol).
-
-I can help you get weather information for any city. Currently running in demo mode.
-
-📱 Mobile-compatible mode: No external processes needed!
-
-To enable full AI features:
-1. Get a free API key from https://aistudio.google.com/app/apikey
-2. Add it to the .env file as GEMINI_API_KEY=your_key_here
-3. Hot reload the app
-
-For real weather data:
-1. Get a free API key from https://openweathermap.org/api
-2. Add it to the .env file as OPENWEATHER_API_KEY=your_key_here
+Currently running in demo mode. To enable full AI features, add your Gemini API key to the .env file.
 
 Try asking me about the weather in any city!""";
 
