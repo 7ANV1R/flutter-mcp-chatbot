@@ -155,6 +155,33 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
 
   bool shouldUseWeatherTool(String message) {
     final lowerMessage = message.toLowerCase();
+
+    // Don't use weather tools for simple greetings
+    final greetingWords = [
+      'hello',
+      'hi',
+      'hey',
+      'good',
+      'thanks',
+      'thank',
+      'bye',
+      'goodbye',
+    ];
+    final messageWords = lowerMessage.split(' ');
+    final isSimpleGreeting =
+        messageWords.length <= 3 &&
+        messageWords.any(
+          (word) =>
+              greetingWords.contains(word.replaceAll(RegExp(r'[^\w]'), '')),
+        );
+
+    if (isSimpleGreeting) {
+      print(
+        '🔍 DEBUG: LLM shouldUseWeatherTool - detected simple greeting, skipping weather tool',
+      );
+      return false;
+    }
+
     final hasWeatherQuery = _containsWeatherQuery(lowerMessage);
     final city = _extractCityFromMessage(message);
     final result = hasWeatherQuery && city != null;
@@ -204,7 +231,7 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
   String? _extractCityFromMessage(String message) {
     print('🔍 DEBUG: Extracting city from: "$message"');
 
-    // Words to filter out (time-related, common words, weather terms)
+    // Words to filter out (time-related, common words, weather terms, greetings)
     final filterWords = {
       'weather',
       'today',
@@ -226,6 +253,8 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
       'how',
       'whats',
       "what's",
+      'hows',
+      "how's",
       'show',
       'me',
       'get',
@@ -247,6 +276,15 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
       'can',
       'you',
       'will',
+      // Common greetings
+      'hello',
+      'hi',
+      'hey',
+      'good',
+      'thanks',
+      'thank',
+      'bye',
+      'goodbye',
     };
 
     // Enhanced patterns to match city names more accurately
@@ -265,6 +303,14 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
       ),
       RegExp(
         r'(?:in|at)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)*?)(?:\s+(?:today|tomorrow|now|weather|forecast|temperature|\?|$))',
+        caseSensitive: false,
+      ),
+      RegExp(
+        r"(?:how'?s|what'?s)\s+the\s+weather\s+in\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)*?)(?:\s*\?|$)",
+        caseSensitive: false,
+      ),
+      RegExp(
+        r"(?:how'?s|what'?s)\s+the\s+forecast\s+(?:for|in)\s+([a-zA-Z]+(?:\s+[a-zA-Z]+)*?)(?:\s*\?|$)",
         caseSensitive: false,
       ),
     ];
@@ -341,9 +387,14 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
   }
 
   // Context-aware message processing
-  bool isContextualWeatherQuery(String message, {String? lastCity, String? lastWeatherType, DateTime? lastWeatherRequest}) {
+  bool isContextualWeatherQuery(
+    String message, {
+    String? lastCity,
+    String? lastWeatherType,
+    DateTime? lastWeatherRequest,
+  }) {
     final lowerMessage = message.toLowerCase();
-    
+
     // Check for contextual phrases
     final contextualPhrases = [
       'what about',
@@ -356,62 +407,90 @@ I use MCP (Model Context Protocol) to fetch real weather data from APIs!""";
       'same for',
       'for',
     ];
-    
-    final hasContextualPhrase = contextualPhrases.any((phrase) => lowerMessage.contains(phrase));
-    
+
+    final hasContextualPhrase = contextualPhrases.any(
+      (phrase) => lowerMessage.contains(phrase),
+    );
+
     // Check for time-related words (indicating weather query)
-    final timeWords = ['today', 'tomorrow', 'now', 'currently', 'this morning', 'tonight'];
+    final timeWords = [
+      'today',
+      'tomorrow',
+      'now',
+      'currently',
+      'this morning',
+      'tonight',
+    ];
     final hasTimeWord = timeWords.any((word) => lowerMessage.contains(word));
-    
+
     // If it's a short message with a city name and contextual phrase
     final cityInMessage = _extractCityFromMessage(message);
-    
-    print('🧠 DEBUG: Contextual analysis - hasContextual: $hasContextualPhrase, hasTime: $hasTimeWord, city: $cityInMessage, lastCity: $lastCity');
-    
+
+    print(
+      '🧠 DEBUG: Contextual analysis - hasContextual: $hasContextualPhrase, hasTime: $hasTimeWord, city: $cityInMessage, lastCity: $lastCity',
+    );
+
     // Context scenarios:
     // 1. "what about London?" after asking about weather
     // 2. "today" after asking incomplete question
     // 3. Short city name after weather context
-    if (lastCity != null && (lastWeatherRequest == null || DateTime.now().difference(lastWeatherRequest).inMinutes < 10)) {
+    if (lastCity != null &&
+        (lastWeatherRequest == null ||
+            DateTime.now().difference(lastWeatherRequest).inMinutes < 10)) {
       if (hasContextualPhrase && cityInMessage != null) {
         return true; // "what about London?"
       }
       if (hasTimeWord && cityInMessage == null) {
-        return true; // "today" 
+        return true; // "today"
       }
       if (cityInMessage != null && message.split(' ').length <= 3) {
         return true; // "London please"
       }
     }
-    
+
     return false;
   }
-  
-  String enhanceMessageWithContext(String message, {String? lastCity, String? lastWeatherType}) {
+
+  String enhanceMessageWithContext(
+    String message, {
+    String? lastCity,
+    String? lastWeatherType,
+  }) {
     final lowerMessage = message.toLowerCase();
-    
+
     // If user asks "what about [city]?" - convert to full weather query
-    if (lowerMessage.contains('what about') || lowerMessage.contains('how about')) {
+    if (lowerMessage.contains('what about') ||
+        lowerMessage.contains('how about')) {
       final city = _extractCityFromMessage(message);
       if (city != null) {
-        final weatherType = lastWeatherType == 'forecast' ? 'forecast' : 'weather';
+        final weatherType = lastWeatherType == 'forecast'
+            ? 'forecast'
+            : 'weather';
         return "What's the $weatherType in $city?";
       }
     }
-    
+
     // If user just says "today" or "now" - use last city
-    if ((lowerMessage.contains('today') || lowerMessage.contains('now') || lowerMessage.contains('currently')) 
-        && lastCity != null && !lowerMessage.contains('weather') && message.split(' ').length <= 2) {
+    if ((lowerMessage.contains('today') ||
+            lowerMessage.contains('now') ||
+            lowerMessage.contains('currently')) &&
+        lastCity != null &&
+        !lowerMessage.contains('weather') &&
+        message.split(' ').length <= 2) {
       return "What's the weather in $lastCity today?";
     }
-    
+
     // If user just mentions a city name - use last weather type
     final cityInMessage = _extractCityFromMessage(message);
-    if (cityInMessage != null && message.split(' ').length <= 3 && !_containsWeatherQuery(lowerMessage)) {
-      final weatherType = lastWeatherType == 'forecast' ? 'forecast' : 'weather';
+    if (cityInMessage != null &&
+        message.split(' ').length <= 3 &&
+        !_containsWeatherQuery(lowerMessage)) {
+      final weatherType = lastWeatherType == 'forecast'
+          ? 'forecast'
+          : 'weather';
       return "What's the $weatherType in $cityInMessage?";
     }
-    
+
     return message;
   }
 }
