@@ -18,12 +18,12 @@ class ChatInputArea extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             offset: const Offset(0, -2),
             blurRadius: 10,
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.08),
           ),
         ],
       ),
@@ -36,24 +36,30 @@ class ChatInputArea extends StatelessWidget {
                 controller: messageController,
                 decoration: InputDecoration(
                   hintText: 'Ask about weather in any city...',
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF9CA3AF),
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).hintColor,
                     fontWeight: FontWeight.w400,
                   ),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey.shade50
+                      : Colors.grey.shade800,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF6366F1),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
                       width: 2,
                     ),
                   ),
@@ -62,11 +68,11 @@ class ChatInputArea extends StatelessWidget {
                     vertical: 14,
                   ),
                 ),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   height: 1.4,
-                  color: Color(0xFF1F2937),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 onSubmitted: (_) => onSendMessage(),
                 enabled: !isLoading,

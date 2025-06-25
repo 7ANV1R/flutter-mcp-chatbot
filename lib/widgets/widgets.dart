@@ -10,3 +10,6 @@ export 'ui/shimmer_widget.dart';
 export 'chat/animated_message_bubble.dart';
 export 'chat/animated_send_button.dart';
 export 'chat/typing_indicator.dart';
+
+// Screens
+export '../screens/settings_screen.dart';

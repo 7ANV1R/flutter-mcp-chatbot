@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../providers/theme_provider.dart';
 
 class TypingIndicator extends StatefulWidget {
   const TypingIndicator({super.key});
@@ -64,13 +65,11 @@ class _TypingIndicatorState extends State<TypingIndicator>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-              ),
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(colors: context.primaryGradient),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                  color: context.primaryColor.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -86,12 +85,15 @@ class _TypingIndicatorState extends State<TypingIndicator>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade200, width: 1),
+              border: Border.all(
+                color: Theme.of(context).dividerColor,
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -109,7 +111,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1),
+                          color: context.primaryColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -126,7 +128,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1),
+                          color: context.primaryColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -143,7 +145,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF6366F1),
+                          color: context.primaryColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

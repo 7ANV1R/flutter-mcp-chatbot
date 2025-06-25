@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/chat_message.dart';
+import '../../providers/theme_provider.dart';
 import '../ui/weather_widget.dart';
 import '../ui/shimmer_widget.dart';
 
@@ -85,18 +86,19 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                       colors: isError
                           ? [Colors.red.shade400, Colors.red.shade600]
                           : isStreaming
-                              ? [Colors.blue.shade400, Colors.blue.shade600]
-                              : [const Color(0xFF6366F1), const Color(0xFF8B5CF6)],
+                          ? [Colors.blue.shade400, Colors.blue.shade600]
+                          : context.primaryGradient,
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: (isError 
-                            ? Colors.red 
-                            : isStreaming 
-                                ? Colors.blue 
-                                : const Color(0xFF6366F1))
-                            .withValues(alpha: 0.3),
+                        color:
+                            (isError
+                                    ? Colors.red
+                                    : isStreaming
+                                    ? Colors.blue
+                                    : context.primaryColor)
+                                .withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -106,8 +108,8 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                     isError
                         ? Icons.error_outline_rounded
                         : isStreaming
-                            ? Icons.hourglass_empty_rounded
-                            : Icons.smart_toy_rounded,
+                        ? Icons.hourglass_empty_rounded
+                        : Icons.smart_toy_rounded,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -129,25 +131,25 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                         ),
                         decoration: BoxDecoration(
                           gradient: isUser
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFF6366F1),
-                                    Color(0xFF8B5CF6),
-                                  ],
-                                )
+                              ? LinearGradient(colors: context.primaryGradient)
                               : null,
                           color: isUser
                               ? null
                               : isError
-                              ? Colors.red.shade50
-                              : Colors.white,
+                              ? (Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? Colors.red.shade50
+                                    : Colors.red.shade900.withValues(
+                                        alpha: 0.3,
+                                      ))
+                              : context.chatBubbleAssistantColor,
                           borderRadius: BorderRadius.circular(16),
                           border: isUser
                               ? null
                               : Border.all(
                                   color: isError
                                       ? Colors.red.shade200
-                                      : Colors.grey.shade200,
+                                      : Theme.of(context).dividerColor,
                                   width: 1,
                                 ),
                           boxShadow: [
@@ -184,7 +186,9 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                                         duration: const Duration(seconds: 2),
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
                                     );
@@ -196,8 +200,13 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                                     color: isUser
                                         ? Colors.white
                                         : isError
-                                        ? Colors.red.shade800
-                                        : const Color(0xFF1F2937),
+                                        ? (Theme.of(context).brightness ==
+                                                  Brightness.light
+                                              ? Colors.red.shade800
+                                              : Colors.red.shade300)
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w400,
                                     height: 1.4,
@@ -208,20 +217,24 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                       ),
 
                     // Weather widget after text message
-                    if (!isUser && (widget.message.weatherData != null || widget.message.isWeatherQuery))
+                    if (!isUser &&
+                        (widget.message.weatherData != null ||
+                            widget.message.isWeatherQuery))
                       widget.message.weatherData != null
-                          ? WeatherWidget(weatherData: widget.message.weatherData!)
+                          ? WeatherWidget(
+                              weatherData: widget.message.weatherData!,
+                            )
                           : widget.message.isWeatherQuery && isStreaming
-                              ? _buildWeatherShimmer()
-                              : const SizedBox.shrink(),
+                          ? _buildWeatherShimmer()
+                          : const SizedBox.shrink(),
 
                     // User message (for user messages only)
                     if (isUser && widget.message.content.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                          gradient: LinearGradient(
+                            colors: context.primaryGradient,
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
@@ -283,13 +296,13 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    gradient: LinearGradient(
+                      colors: [context.primaryLightColor, context.primaryColor],
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                        color: context.primaryColor.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -312,25 +325,30 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
   Widget _buildStreamingContent() {
     switch (widget.message.state) {
       case MessageState.analyzing:
-        return _buildShimmerText(
+        return _buildModernStreamingText(
           widget.message.content,
-          icon: Icons.search_rounded,
+          icon: Icons.psychology_rounded,
+          color: context.primaryColor,
         );
       case MessageState.fetchingWeather:
-        return _buildShimmerText(
+        return _buildModernStreamingText(
           widget.message.content,
-          icon: Icons.cloud_download_rounded,
+          icon: Icons.cloud_sync_rounded,
+          color: Colors.blue.shade500,
         );
       case MessageState.streaming:
-        return _buildShimmerText(
+        return _buildModernStreamingText(
           widget.message.content,
-          icon: Icons.edit_rounded,
+          icon: Icons.auto_awesome_rounded,
+          color: context.primaryColor,
         );
       case MessageState.error:
         return Text(
           widget.message.content,
           style: TextStyle(
-            color: Colors.red.shade800,
+            color: Theme.of(context).brightness == Brightness.light
+                ? Colors.red.shade800
+                : Colors.red.shade300,
             fontSize: 15,
             fontWeight: FontWeight.w400,
             height: 1.4,
@@ -340,8 +358,8 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
       case MessageState.complete:
         return Text(
           widget.message.content,
-          style: const TextStyle(
-            color: Color(0xFF1F2937),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 15,
             fontWeight: FontWeight.w400,
             height: 1.4,
@@ -351,33 +369,112 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
     }
   }
 
-  Widget _buildShimmerText(String text, {required IconData icon}) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Colors.blue.shade600,
+  Widget _buildModernStreamingText(
+    String text, {
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: ShimmerWidget(
-            isLoading: true,
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
-            child: Text(
-              text,
-              style: TextStyle(
-                color: Colors.blue.shade700,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                height: 1.4,
-                letterSpacing: 0.2,
-              ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 14, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ShimmerWidget(
+                  isLoading: true,
+                  baseColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey.shade300
+                      : Colors.grey.shade700,
+                  highlightColor:
+                      Theme.of(context).brightness == Brightness.light
+                      ? Colors.grey.shade100
+                      : Colors.grey.shade600,
+                  child: Container(
+                    height: 4,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
+          // Animated dots
+          _buildAnimatedDots(color),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedDots(Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildAnimatedDot(color, 0),
+        const SizedBox(width: 3),
+        _buildAnimatedDot(color, 200),
+        const SizedBox(width: 3),
+        _buildAnimatedDot(color, 400),
       ],
+    );
+  }
+
+  Widget _buildAnimatedDot(Color color, int delay) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 1.0),
+      duration: const Duration(milliseconds: 800),
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Container(
+            width: 4,
+            height: 4,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: value),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        );
+      },
+      onEnd: () {
+        // Restart animation after a brief pause
+        Future.delayed(Duration(milliseconds: delay), () {
+          if (mounted) {
+            setState(() {});
+          }
+        });
+      },
     );
   }
 
@@ -386,70 +483,157 @@ class _AnimatedMessageBubbleState extends State<AnimatedMessageBubble>
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.chatBubbleAssistantColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header shimmer
-          ShimmerWidget(
-            isLoading: true,
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
-            child: Container(
-              height: 20,
-              width: 150,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(10),
+          // Modern header with weather icon
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade400, Colors.blue.shade600],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.wb_sunny_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerWidget(
+                      isLoading: true,
+                      baseColor:
+                          Theme.of(context).brightness == Brightness.light
+                          ? Colors.grey.shade300
+                          : Colors.grey.shade700,
+                      highlightColor:
+                          Theme.of(context).brightness == Brightness.light
+                          ? Colors.grey.shade100
+                          : Colors.grey.shade600,
+                      child: Container(
+                        height: 16,
+                        width: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    ShimmerWidget(
+                      isLoading: true,
+                      baseColor:
+                          Theme.of(context).brightness == Brightness.light
+                          ? Colors.grey.shade300
+                          : Colors.grey.shade700,
+                      highlightColor:
+                          Theme.of(context).brightness == Brightness.light
+                          ? Colors.grey.shade100
+                          : Colors.grey.shade600,
+                      child: Container(
+                        height: 12,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+
           const SizedBox(height: 16),
+
           // Temperature shimmer
           ShimmerWidget(
             isLoading: true,
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
+            baseColor: Theme.of(context).brightness == Brightness.light
+                ? Colors.grey.shade300
+                : Colors.grey.shade700,
+            highlightColor: Theme.of(context).brightness == Brightness.light
+                ? Colors.grey.shade100
+                : Colors.grey.shade600,
             child: Container(
               height: 40,
               width: 100,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+
+          const SizedBox(height: 16),
+
           // Details shimmer
           Row(
-            children: [
-              for (int i = 0; i < 3; i++) ...[
-                ShimmerWidget(
-                  isLoading: true,
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                    height: 16,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(8),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(
+              3,
+              (index) => Column(
+                children: [
+                  ShimmerWidget(
+                    isLoading: true,
+                    baseColor: Theme.of(context).brightness == Brightness.light
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700,
+                    highlightColor:
+                        Theme.of(context).brightness == Brightness.light
+                        ? Colors.grey.shade100
+                        : Colors.grey.shade600,
+                    child: Container(
+                      height: 12,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
                   ),
-                ),
-                if (i < 2) const SizedBox(width: 16),
-              ],
-            ],
+                  const SizedBox(height: 6),
+                  ShimmerWidget(
+                    isLoading: true,
+                    baseColor: Theme.of(context).brightness == Brightness.light
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700,
+                    highlightColor:
+                        Theme.of(context).brightness == Brightness.light
+                        ? Colors.grey.shade100
+                        : Colors.grey.shade600,
+                    child: Container(
+                      height: 14,
+                      width: 35,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

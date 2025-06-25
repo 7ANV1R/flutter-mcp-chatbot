@@ -4,3 +4,4 @@ export 'llm_service.dart';
 export 'mcp_client.dart';
 export 'weather_service.dart';
 export 'mcp_weather_server.dart';
+export 'theme_service.dart';

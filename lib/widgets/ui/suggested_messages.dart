@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../providers/theme_provider.dart';
 
 class SuggestedMessages extends StatelessWidget {
   final Function(String) onSuggestionTap;
@@ -23,9 +24,7 @@ class SuggestedMessages extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                  ),
+                  gradient: LinearGradient(colors: context.primaryGradient),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -40,7 +39,9 @@ class SuggestedMessages extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -76,13 +77,11 @@ class _SuggestionChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-          ),
+          gradient: LinearGradient(colors: context.primaryGradient),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+              color: context.primaryColor.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

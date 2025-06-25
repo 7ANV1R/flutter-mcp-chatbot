@@ -96,7 +96,7 @@ Try asking me about the weather in any city!""";
         // Create placeholder message immediately for streaming UI
         final streamingMsg = ChatMessage(
           id: _generateId(),
-          content: "Analyzing your weather request...",
+          content: "🔍 Analyzing your request...",
           type: MessageType.assistant,
           state: MessageState.analyzing,
           isWeatherQuery: true,
@@ -107,7 +107,7 @@ Try asking me about the weather in any city!""";
         _updateMessageState(
           streamingMsg.id,
           MessageState.fetchingWeather,
-          "Getting weather data for $city...",
+          "🌤️ Fetching live weather data for $city...",
         );
 
         List<String> toolResults = [];
@@ -152,7 +152,7 @@ Try asking me about the weather in any city!""";
         _updateMessageState(
           streamingMsg.id,
           MessageState.streaming,
-          "Preparing your weather report...",
+          "✨ Preparing your personalized weather report...",
         );
 
         // Generate LLM response with conversation context
@@ -255,6 +255,36 @@ Try asking me about the weather in any city!""";
 
   void clearMessages() {
     _messages.clear();
+  }
+
+  Future<void> resetChat() async {
+    // Clear all messages
+    _messages.clear();
+
+    // Reset conversation context
+    _lastAskedCity = null;
+    _lastWeatherType = null;
+
+    // Add welcome message again
+    final geminiApiKey = dotenv.env['GEMINI_API_KEY'];
+    final hasApiKey = geminiApiKey != null && geminiApiKey.isNotEmpty;
+    final welcomeMessage = hasApiKey
+        ? """Hello! I'm your AI weather assistant.
+
+I can help you get current weather conditions and forecasts for any city around the world. Just ask me about the weather! 🌤️"""
+        : """Hello! I'm your weather assistant powered by MCP.
+
+Currently running in demo mode. To enable full AI features, add your Gemini API key to the .env file.
+
+Try asking me about the weather in any city!""";
+
+    _addMessage(
+      ChatMessage(
+        id: _generateId(),
+        content: welcomeMessage,
+        type: MessageType.assistant,
+      ),
+    );
   }
 
   String _generateId() {

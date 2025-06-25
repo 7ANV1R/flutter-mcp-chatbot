@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../providers/theme_provider.dart';
 
 class AnimatedSendButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -17,17 +18,15 @@ class AnimatedSendButton extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         gradient: isLoading
-          ? LinearGradient(
-              colors: [Colors.grey.shade300, Colors.grey.shade400],
-            )
-          : const LinearGradient(
-              colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-            ),
+            ? LinearGradient(
+                colors: [Colors.grey.shade300, Colors.grey.shade400],
+              )
+            : LinearGradient(colors: context.primaryGradient),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           if (!isLoading)
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+              color: context.primaryColor.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -48,11 +47,7 @@ class AnimatedSendButton extends StatelessWidget {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
           ),
         ),
       ),
