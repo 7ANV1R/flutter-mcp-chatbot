@@ -13,7 +13,7 @@ This guide explains how to work with the APIs used in this project and how to in
 1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
 2. Sign in with Google account
 3. Create new API key
-4. Add to `.env` file as `GEMINI_API_KEY`
+4. Add to `.env.json` configuration file
 
 #### Features Used
 
@@ -73,7 +73,7 @@ try {
 1. Visit [OpenWeatherMap](https://openweathermap.org/api)
 2. Create free account
 3. Get API key from dashboard
-4. Add to `.env` file as `OPENWEATHER_API_KEY`
+4. Add to `.env.json` configuration file
 
 #### Features Used
 
@@ -231,26 +231,42 @@ class MCPClient {
 }
 ```
 
-### Step 4: Update Environment
+### Step 4: Update Environment Configuration
 
-```env
-# .env
-GEMINI_API_KEY=your_gemini_key
-OPENWEATHER_API_KEY=your_openweather_key
-NEW_API_KEY=your_new_api_key
+```json
+// .env.json
+{
+  "GEMINI_API_KEY": "your_gemini_key",
+  "OPENWEATHER_API_KEY": "your_openweather_key",
+  "NEW_API_KEY": "your_new_api_key"
+}
 ```
 
 ### Step 5: Update Chat Service
 
 ```dart
 // lib/chat_service.dart
+import '../config/environment.dart';
+
 class ChatService {
   late final NewService newService;
 
   void _initializeServices() {
     // Existing services...
-    newService = NewService(apiKey: dotenv.env['NEW_API_KEY'] ?? '');
+    newService = NewService(apiKey: Env.newApiKey);
   }
+}
+```
+
+### Step 6: Update Environment Class
+
+```dart
+// lib/config/environment.dart
+class Env {
+  // Existing keys...
+  static const String newApiKey = String.fromEnvironment('NEW_API_KEY', defaultValue: '');
+  
+  static bool get hasValidNewApiKey => newApiKey.isNotEmpty && newApiKey != 'placeholder';
 }
 ```
 
@@ -325,7 +341,7 @@ class ApiCache {
 const apiKey = 'sk-1234567890abcdef';
 
 // ✅ Good
-final apiKey = dotenv.env['API_KEY'] ?? '';
+final apiKey = Env.apiKey;
 
 // Always use HTTPS
 // ❌ Bad
@@ -392,7 +408,7 @@ void main() {
 
 ### API Key Problems
 
-- Double-check key is correct in `.env`
+- Double-check key is correct in `.env.json`
 - Verify key has necessary permissions
 - Check if key needs activation time
 

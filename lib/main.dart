@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 import 'app.dart';
+import 'config/environment.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    print('Warning: Could not load .env file: $e');
+  // Validate environment configuration in debug mode
+  if (kDebugMode) {
+    try {
+      Env.validateKeys();
+      print('✅ All API keys are properly configured');
+    } catch (e) {
+      print('⚠️ Warning: $e');
+    }
   }
 
   runApp(const MyApp());

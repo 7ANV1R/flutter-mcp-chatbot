@@ -65,18 +65,30 @@ cd flutter_mcp_chat
 flutter pub get
 ```
 
-### Configure API Keys
+### Configure API Keys (Secure Method)
 
-1. Find the `.env` file in the project root
-2. Open it in any text editor
-3. Replace the placeholder values:
+This project uses a secure approach for API key management with `--dart-define-from-file`:
 
-```env
-GEMINI_API_KEY=your_actual_gemini_key_here
-OPENWEATHER_API_KEY=your_actual_openweather_key_here
+1. Copy the example configuration file:
+```bash
+cp .env.json.example .env.json
 ```
 
-4. Save the file
+2. Edit `.env.json` with your actual API keys:
+```json
+{
+  "GEMINI_API_KEY": "your_actual_gemini_key_here",
+  "OPENWEATHER_API_KEY": "your_actual_openweather_key_here"
+}
+```
+
+3. Save the file
+
+**🔒 Security Benefits:**
+- API keys are not embedded in the compiled APK
+- Keys cannot be extracted from the app bundle
+- More secure than traditional `.env` files
+- Configuration file is automatically git-ignored
 
 ## Step 4: Run the App
 
@@ -90,8 +102,17 @@ Make sure all checks pass (some warnings are okay).
 
 ### Start the App
 
+#### Using VS Code (Recommended)
+If you're using VS Code, the project includes launch configurations that automatically handle the secure environment setup:
+
+1. Open the project in VS Code
+2. Press `F5` or use the Debug panel
+3. Select "Flutter (Debug)" configuration
+4. The app will launch with proper API key configuration
+
+#### Using Command Line
 ```bash
-flutter run
+flutter run --dart-define-from-file=.env.json
 ```
 
 Choose your target device when prompted:

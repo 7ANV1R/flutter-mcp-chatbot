@@ -2,7 +2,7 @@
 
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../config/environment.dart';
 import '../models/chat_message.dart';
 import '../models/weather_data.dart';
 import 'llm_service.dart';
@@ -25,29 +25,22 @@ class ChatService {
   List<ChatMessage> get messages => List.unmodifiable(_messages);
 
   Future<void> initialize() async {
-    // Load environment variables
-    try {
-      await dotenv.load(fileName: ".env");
-    } catch (e) {
-      print('Warning: Could not load .env file: $e');
-    }
-
-    // Initialize LLM service with API key
-    final geminiApiKey = dotenv.env['GEMINI_API_KEY'];
+    // Initialize LLM service with API key from environment
+    final geminiApiKey = Env.geminiApiKey;
     _llmService = LlmService(apiKey: geminiApiKey);
 
     // Initialize MCP client
     await _mcpClient.initialize();
 
     // Add welcome message
-    final hasApiKey = geminiApiKey != null && geminiApiKey.isNotEmpty;
+    final hasApiKey = Env.hasValidGeminiKey;
     final welcomeMessage = hasApiKey
         ? """Hello! I'm your AI weather assistant.
 
 I can help you get current weather conditions and forecasts for any city around the world. Just ask me about the weather! 🌤️"""
         : """Hello! I'm your weather assistant powered by MCP.
 
-Currently running in demo mode. To enable full AI features, add your Gemini API key to the .env file.
+Currently running in demo mode. To enable full AI features, configure your Gemini API key in .env.json and run with --dart-define-from-file=.env.json.
 
 Try asking me about the weather in any city!""";
 
@@ -266,15 +259,14 @@ Try asking me about the weather in any city!""";
     _lastWeatherType = null;
 
     // Add welcome message again
-    final geminiApiKey = dotenv.env['GEMINI_API_KEY'];
-    final hasApiKey = geminiApiKey != null && geminiApiKey.isNotEmpty;
+    final hasApiKey = Env.hasValidGeminiKey;
     final welcomeMessage = hasApiKey
         ? """Hello! I'm your AI weather assistant.
 
 I can help you get current weather conditions and forecasts for any city around the world. Just ask me about the weather! 🌤️"""
         : """Hello! I'm your weather assistant powered by MCP.
 
-Currently running in demo mode. To enable full AI features, add your Gemini API key to the .env file.
+Currently running in demo mode. To enable full AI features, configure your Gemini API key in .env.json and run with --dart-define-from-file=.env.json.
 
 Try asking me about the weather in any city!""";
 

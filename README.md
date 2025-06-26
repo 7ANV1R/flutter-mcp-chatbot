@@ -56,15 +56,52 @@ This app implements proper MCP architecture with clean, scalable code organizati
 3. Generate an API key
 4. Copy the key
 
-### 2. Configure Environment
+### 2. Secure Configuration
 
-Edit the `.env` file in the project root:
+For enhanced security, this project uses `--dart-define-from-file` instead of `.env` files. This approach prevents API keys from being exposed in APK files when the app is built.
 
-```env
-# Replace with your actual API keys
-GEMINI_API_KEY=your_gemini_api_key_here
-OPENWEATHER_API_KEY=your_openweather_api_key_here
+#### Create Configuration File
+
+1. Copy the example configuration:
+```bash
+cp .env.json.example .env.json
 ```
+
+2. Edit `.env.json` with your actual API keys:
+```json
+{
+  "OPENWEATHER_API_KEY": "your_openweather_api_key_here",
+  "GEMINI_API_KEY": "your_gemini_api_key_here"
+}
+```
+
+**🔒 Security Note**: The `.env.json` file is git-ignored and will not be committed to version control. This approach ensures your API keys are more secure than using traditional `.env` files.
+
+## 🔒 Security Features
+
+This project implements secure API key management using Flutter's `--dart-define-from-file` feature:
+
+### Why This Approach is More Secure
+
+- **📱 APK Protection**: API keys are not embedded in the compiled APK file
+- **🔍 No Asset Exposure**: Keys are not stored in the `assets/` folder where they can be extracted
+- **⚙️ Compile-time Injection**: Keys are injected during compilation, not at runtime
+- **🚫 Git Safety**: Configuration files are properly git-ignored
+- **🔧 Environment Separation**: Easy to maintain different keys for different environments
+
+### Traditional .env vs. --dart-define-from-file
+
+| Method | Security Level | APK Exposure | Extraction Risk |
+|--------|----------------|--------------|-----------------|
+| `.env` in assets | ⚠️ Low | ✅ Exposed | ⚠️ High |
+| `--dart-define-from-file` | ✅ High | ❌ Protected | ✅ Low |
+
+### VS Code Integration
+
+The project includes preconfigured launch settings in `.vscode/launch.json` that automatically use the secure configuration:
+- Debug, Release, and Profile configurations
+- Automatic `--dart-define-from-file=.env.json` injection
+- No manual command-line arguments needed
 
 ### 3. Install Dependencies
 
@@ -74,8 +111,21 @@ flutter pub get
 
 ### 4. Run the App
 
+#### Using VS Code
+If you're using VS Code, the project includes launch configurations that automatically use the secure environment setup. Just press F5 or use the Debug panel.
+
+#### Using Command Line
 ```bash
-flutter run
+flutter run --dart-define-from-file=.env.json
+```
+
+#### Building for Production
+```bash
+# Debug build
+flutter build apk --dart-define-from-file=.env.json
+
+# Release build  
+flutter build apk --release --dart-define-from-file=.env.json
 ```
 
 ## How It Works

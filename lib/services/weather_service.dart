@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../config/environment.dart';
 
 /// In-process weather service that simulates MCP tools
 /// This version works on mobile platforms without requiring external processes
@@ -8,7 +8,7 @@ class WeatherService {
   static const String openWeatherApiBase =
       "https://api.openweathermap.org/data/2.5";
 
-  String? get apiKey => dotenv.env['OPENWEATHER_API_KEY'];
+  String get apiKey => Env.openWeatherApiKey;
 
   Future<void> initialize() async {
     // Weather service is ready to use immediately
@@ -25,8 +25,7 @@ class WeatherService {
       '🌤️ DEBUG: WeatherService.getCurrentWeather called for $city${country != null ? ', $country' : ''}',
     );
 
-    if (apiKey == null ||
-        apiKey!.isEmpty ||
+    if (apiKey.isEmpty ||
         apiKey == 'your_openweather_api_key_here') {
       print('📝 DEBUG: Using demo weather data (no API key)');
       return _getDemoWeather(city);
@@ -74,8 +73,7 @@ class WeatherService {
   }
 
   Future<String> getWeatherForecast(String city, {String? country}) async {
-    if (apiKey == null ||
-        apiKey!.isEmpty ||
+    if (apiKey.isEmpty ||
         apiKey == 'your_openweather_api_key_here') {
       return _getDemoForecast(city);
     }
